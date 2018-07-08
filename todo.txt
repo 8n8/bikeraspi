@@ -1,0 +1,5 @@
++ DONE get the webcams working
++ get the screen working
++ get the buttons on the screen working
++ get the GPS receiver working
++ get the motion sensor working https://learn.adafruit.com/bno055-absolute-orientation-sensor-with-raspberry-pi-and-beaglebone-black/hardware

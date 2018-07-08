@@ -1,0 +1,19 @@
+Monday 8 July 2018
+
+I'm typing this on my new Raspberry Pi.  The idea for this project is to:
+
+1. Set up the RPi on my bike so that I can cycle around and collect training data for the navigation neural network.
+2. Train my navigation neural network.
+3. Set up the RPi on my bike so that it will give me directions in some way (like on the screen or via headphones), to see if it is working.
+
+4. If step (3) is doing reasonable things, add a steering motor to the bike and try riding without hands.  Perhaps.  Need to check on legality etc first.
+5. 
+
+So what is the structure of the program in step 1?  There will be a main loop, an overall state ... I think I am clear enough that I can go ahead and write some code.
+
+I think the best place to start is to make a function for reading each of the sensors that I need.  Then I can go on to write the code.  The devices are:
+
+1. The little screen and its buttons- not soldered on yet
+2. the motion sensor - not soldered on yet
+3. the web cams
+4. the GPS reciever - at 8 Hazel
