@@ -1,0 +1,3 @@
+collectData/.stack-work/
+*.sw*
+collectData/collectData.cabal

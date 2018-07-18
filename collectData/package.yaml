@@ -1,0 +1,15 @@
+name: collectData
+version: 1.0.0
+synopsis: data collector for robot bike
+maintainer: "True Ghiassi <true@ghiassitrio.co.uk"
+license: GPL-3
+
+ghc-options: -Wall -O2
+
+dependencies:
+  - base >= 4.8 && < 5
+
+executables:
+  collectData:
+    main: Main.hs
+    source-dirs: src
