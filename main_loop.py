@@ -31,19 +31,17 @@ class RecordingState(enum.Enum):
     OFF_ARRIVED = enum.auto()
 
 
-class GpsReading(TypedDict):
-    """ It represents the reading from the GPS receiver. """
-    speed: float
-    speed_error: str
-    position: plan_route.MapPosition
-    position_error: str
+GpsReading = TypedDict('GpsReading', {
+    'speed': float,
+    'speed_error': str,
+    'position': plan_route.MapPosition,
+    'position_error': str})
 
 
-class Acceleration(TypedDict):
-    """ It represents the acceleration reading. """
-    x: int
-    y: int
-    z: int
+Acceleration = TypedDict('Acceleration', {
+    'x': int,
+    'y': int,
+    'z': int})
 
 
 class MicrobitReading(TypedDict):
