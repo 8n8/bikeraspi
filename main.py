@@ -135,11 +135,11 @@ GPS_POSITION_PARSER = parse.compile('$GPGLL,{:f},{:w},{:f},{:w},{:S}\r\n')
 
 start = {
     'latitude': 52.24387,
-    'longitude': 0.16448}
+    'longitude': 0.164479}
 
 end = {
-    'latitude': 52.242408,
-    'longitude': 0.166322}
+    'latitude': 52.239136,
+    'longitude': 0.174155}
 
 print plan_route.main(start, end)
 

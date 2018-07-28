@@ -60,11 +60,32 @@ def vector_angle_to_north(v):
     """
     It calculates the angle of the vector relative to (0, 1).  The angle
     is between 0 and 2π radians.
+
+           ^ North
+           |
+           |
+           |\ a
+           \/
+            \
+             \
+              \
+              _\| V
+
+
+    The angle a between vector V and North is between 0 and 2π.  The dot
+    M
+    M
+    product of two vectos is defined as
+
+
+
+
+
     """
     magnitude = (v['longitude']**2 + v['latitude']**2)**0.5
     if isclose(magnitude, 0):
         return None, "Vector has zero magnitude."
-    angle = math.acos(v['longitude'] / magnitude)
+    angle = math.atan2(v['longitude'], v['latitude'])
     return angle, None
 
 
@@ -99,15 +120,15 @@ def segment_30_metres_away(points):
     Given a list of the coordinates of the route, it finds the ones that
     are the start and end points of the segment that is 30 metres away.
     """
-    distance = 0
     len_points = len(points)
     if len_points < 2:
         return None, None, 'Less than two points in the list.'
-    for i, point in enumerate(points[1:]):
-        stop = {'latitude': point[1], 'longitude': point[0]}
-        start = {'latitude': points[i][1], 'longitude': points[i][0]}
+    distance = 0
+    for i, point in enumerate(points):
+        start = {'latitude': point[1], 'longitude': point[0]}
+        stop = {'latitude': points[i+1][1], 'longitude': points[i+1][0]}
         length = distance_between(start, stop)
-        print length
+        print length, start, stop
         distance += length
         if distance > 30:
             break
@@ -129,6 +150,7 @@ def parse_route(raw_route):
                 'Route code is {}'.format(route_as_dict['code']))
     points = route_as_dict['routes'][0]['geometry']['coordinates']
     result = segment_30_metres_away(points)
+    print "result", result
     return result
 
 
@@ -152,6 +174,7 @@ def calculate_direction(raw_route):
     diff = {
         'longitude': end['longitude'] - start['longitude'],
         'latitude': end['latitude'] - start['latitude']}
+    print 'diff', diff
     angle, err = vector_angle_to_north(diff)
     if err is not None:
         return None, "The first two nodes in the route are identical."
