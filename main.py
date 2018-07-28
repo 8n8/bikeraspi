@@ -1,8 +1,12 @@
+# coding=utf-8
 # Tested in Python 2.7.13.
 
 from Adafruit_BNO055 import BNO055 as move_sensor
 import time
 import cv2
+import plan_route
+import parse
+import serial
 
 def ioCalibrateMoveSensor(bno):
     cal = bno.get_calibration_status()
@@ -59,10 +63,6 @@ def ioTakePhoto(camHandle):
 def toBlackAndWhite(im):
     return cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
 
-def readGps():
-    with serial.Serial('/dev/ttyACM0', baurate=115200) as gps_port:
-        return gps_port
-
 
 def readGps(gpsSerialPort):
     """
@@ -80,10 +80,10 @@ def readGps(gpsSerialPort):
     for _ in range(14):
         raw = gpsSerialPort.readline()
         if reading['speedError'] is not None:
-            reading['speedError'], reading['speed'] = (
+            reading['speed'], reading['speedError'] = (
                 parse_gps_speed_reading(raw))
         if reading['positionError'] is not None:
-            reading['positionError'], reading['position'] = (
+            reading['position'], reading['positionError'] = (
                 parse_gps_position_reading(raw))
         if (reading['speedError'] is None and
                 reading['positionError'] is None):
@@ -125,13 +125,21 @@ def parse_gps_position_reading(line_of_output):
         longitude_sign = 1
     if parsed[3] == 'W':
         longitude_sign = -1
-    return (plan_route.MapPosition(
-        latitude=latitude_sign * angle_minutes_to_float(str(parsed[0])),
-        longitude=longitude_sign * angle_minutes_to_float(str(parsed[2]))), None)
+    return (
+        {'latitude': latitude_sign * angle_minutes_to_float(str(parsed[0])),
+         'longitude': longitude_sign * angle_minutes_to_float(str(parsed[2]))},
+        None)
 
 
 GPS_POSITION_PARSER = parse.compile('$GPGLL,{:f},{:w},{:f},{:w},{:S}\r\n')
 
+start = {
+    'latitude': 52.24387,
+    'longitude': 0.16448}
 
-with serialSerial('/dev/ttyACM0', baudrate=115200) as gps_port:
-    print readGps(gps_port)
+end = {
+    'latitude': 52.242408,
+    'longitude': 0.166322}
+
+print plan_route.main(start, end)
+
