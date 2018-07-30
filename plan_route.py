@@ -1,4 +1,5 @@
 # coding=utf-8
+# Tested in Python 2.7.13
 """
 It calculates the direction to travel in to get to a destination on the
 road map, given the coordinates of the start and end points.
@@ -28,30 +29,6 @@ def main(start, end):
     return calculate_direction(raw_request.content.decode('utf-8'))
 
 
-def nearest_point(v):
-    """
-    It finds the nearest point on the road network to the given map
-    position.
-    """
-    request_string = make_get_request_string_for_snap(v)
-    raw_response = requests.get(request_string)
-    if raw_response.status_code != 200:
-        return (
-            'Router server gave status code {}'.format(
-                raw_response.status_code),
-            None)
-    return None, parse_snap_response(raw_response.content.decode('utf-8'))
-
-
-def make_get_request_string_for_snap(v):
-    """
-    It makes the string for finding out the nearest accessible node to
-    the map coordinate.
-    """
-    return 'http://localhost:5000/nearest/v1/driving/{},{}'.format(
-        v.longitude, v.latitude)
-
-
 def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
     return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
@@ -60,32 +37,13 @@ def vector_angle_to_north(v):
     """
     It calculates the angle of the vector relative to (0, 1).  The angle
     is between 0 and 2π radians.
-
-           ^ North
-           |
-           |
-           |\ a
-           \/
-            \
-             \
-              \
-              _\| V
-
-
-    The angle a between vector V and North is between 0 and 2π.  The dot
-    M
-    M
-    product of two vectos is defined as
-
-
-
-
-
     """
     magnitude = (v['longitude']**2 + v['latitude']**2)**0.5
     if isclose(magnitude, 0):
         return None, "Vector has zero magnitude."
     angle = math.atan2(v['longitude'], v['latitude'])
+    if angle < 0:
+        angle = angle + 2 * math.pi
     return angle, None
 
 
@@ -128,7 +86,6 @@ def segment_30_metres_away(points):
         start = {'latitude': point[1], 'longitude': point[0]}
         stop = {'latitude': points[i+1][1], 'longitude': points[i+1][0]}
         length = distance_between(start, stop)
-        print length, start, stop
         distance += length
         if distance > 30:
             break
@@ -150,31 +107,19 @@ def parse_route(raw_route):
                 'Route code is {}'.format(route_as_dict['code']))
     points = route_as_dict['routes'][0]['geometry']['coordinates']
     result = segment_30_metres_away(points)
-    print "result", result
     return result
-
-
-def parse_snap_response(raw_response):
-    """ It extracts the first location from the snap response. """
-    as_json = json.loads(raw_response)
-    raw_position = as_json['waypoints'][0]['location']
-    return {
-        'longitude': float(raw_position[0]),
-        'latitude': float(raw_position[1])}
 
 
 def calculate_direction(raw_route):
     """
     It calculates the bearing along the first segment of the route.
     """
-    print raw_route
     start, end, err = parse_route(raw_route)
     if err is not None:
         return err, None
     diff = {
         'longitude': end['longitude'] - start['longitude'],
         'latitude': end['latitude'] - start['latitude']}
-    print 'diff', diff
     angle, err = vector_angle_to_north(diff)
     if err is not None:
         return None, "The first two nodes in the route are identical."
