@@ -32,6 +32,7 @@ def subtractAngles(angle1, angle2):
         return diff - twoPi
     if diff < 0:
         return diff + twoPi
+    return diff
 
 
 def calibrationMsg(calDat):
@@ -186,10 +187,6 @@ def angle_minutes_to_float(angle):
     first_half, minutes_decimals = angle.split('.')
     whole_minutes = first_half[-2:]
     degrees = first_half[:-2]
-    print "angle<" + angle + ">"
-    print "whole_minutes<" + str(whole_minutes) + ">"
-    print "degrees<" + str(degrees) + ">"
-    print "minutes_decimals<" + minutes_decimals + ">"
     if len(degrees) == 0:
         floatdegrees = 0
     else:
@@ -277,13 +274,13 @@ def writeDataToFile(data):
 
 
 DESTINATION = {
-    'latitude': 29,
-    'longitude': 42}
+    'latitude': 52.237516,
+    'longitude': 0.178029}
 
 
 HOME = {
-    'latitude': 33,
-    'longitude': 44}
+    'latitude': 52.241041,
+    'longitude': 0.161055}
 
 
 def initState():
@@ -303,6 +300,7 @@ def main():
 
     handles, err = makeHandles()
     if err is not None:
+        print "Error making handles"
         print err
         return
 
@@ -312,29 +310,40 @@ def main():
         print "top of loop"
         sensorReadings = readSensors(handles)
 
+        print 'a'
         gpsReadings, _ = sensorReadings['gps']
         if gpsReadings is not None:
             state['location'] = gpsReadings['position']
         writeDataToFile(sensorReadings)
+        print 'b'
 
         if plan_route.distance_between(state['location'], DESTINATION) < 30:
+            print 'c'
             state['outwardBound'] = False
             state['destination'] = HOME
+
+        print 'd'
 
         if (not state['outwardBound'] and
                 plan_route.distancebetween(state['location'], HOME) < 30):
             print "Arrived home. Exiting."
             return
+            
+        print 'e'
 
         desiredDirection, err = plan_route.main(
             state['location'],
             state['destination'])
+        print 'f'
         if err is not None:
+            print "Routing server returned an error."
             print err
-            continue
+            return
+        print 'g'
         headingRadians = sensorReadings['motion']['heading'] * math.pi / 180
         correctionAngle = subtractAngles(desiredDirection, headingRadians)
 
+        print 'h'
         canvas.create_line(
             200,
             200,
@@ -343,10 +352,8 @@ def main():
             arrow=tk.LAST,
             width=10,
             arrowshape=(30, 40, 10))
+        print 'i'
         canvas.delete("all")
-        time.sleep(0.05)
+        print 'j'
 
-    window.mainloop()
-
-
-main()
+window.mainloop()
