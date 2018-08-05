@@ -305,6 +305,8 @@ def main():
         return
 
     state = initState()
+    while True:
+         print readSensors(handles)
 
     while True:
         print "top of loop"
@@ -356,4 +358,6 @@ def main():
         canvas.delete("all")
         print 'j'
 
-window.mainloop()
+    window.mainloop()
+
+main()

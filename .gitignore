@@ -2,3 +2,4 @@ collectData/.stack-work/
 *.sw*
 collectData/collectData.cabal
 *.pyc
+testIm*
