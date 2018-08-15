@@ -52,7 +52,7 @@ def setupMoveSensor():
     handle, err = connectToMoveSensor()
     if err is not None:
         return None, err
-    # calibrateMoveSensor(handle)
+    calibrateMoveSensor(handle)
     return handle, None
 
 
@@ -273,75 +273,11 @@ def initState():
             'longitude': HOME['longitude']},
         'outwardBound': True}
 
-# def main():
-#     os.mkdir(DATADIR)
-#
-#     handles, err = makeHandles()
-#     if err is not None:
-#         print "Error making handles"
-#         print err
-#         return
-#
-#     state = initState()
-#
-#     while True:
-#         print "top of loop"
-#         sensorReadings = readSensors(handles)
-#
-#         print 'a'
-#         gpsReadings, _ = sensorReadings['gps']
-#         if gpsReadings is not None:
-#             state['location'] = gpsReadings['position']
-#         writeDataToFile(sensorReadings)
-#         print 'b'
-#
-#         if state['outwardBound']:
-#             if plan_route.distance_between(
-#                     state['location'],
-#                     DESTINATION) < 30:
-#                 print 'c'
-#                 state['outwardBound'] = False
-#                 state['destination'] = HOME
-#
-#         print 'd'
-#
-#         if not state['outwardBound']:
-#             if plan_route.distance_between(state['location'], HOME) < 30:
-#                 print "Arrived home. Exiting."
-#                 return
-#
-#         print 'e'
-#
-#         desiredDirection, err = plan_route.main(
-#             state['location'],
-#             state['destination'])
-#         print 'f'
-#         if err is not None:
-#             print "Routing server returned an error."
-#             print err
-#             return
-#         print 'g'
-#         headingRadians = sensorReadings['motion']['heading'] * math.pi / 180
-#         correctionAngle = subtractAngles(desiredDirection, headingRadians)
-#
-#         print 'h'
-#         canvas.create_line(
-#             200,
-#             200,
-#             200*math.cos(correctionAngle),
-#             200*math.sin(correctionAngle),
-#             arrow=tk.LAST,
-#             width=10,
-#             arrowshape=(30, 40, 10))
-#         print 'i'
-#         canvas.delete("all")
-#         print 'j'
-
 
 class arrowWindow(object):
     def __init__(self):
         self.root = tk.Tk()
-        self.canvas = tk.Canvas(self.root, width=400, height=400)
+        self.canvas = tk.Canvas(self.root, width=800, height=800)
         self.canvas.pack()
         os.mkdir(DATADIR)
         self.handles, err = makeHandles()
@@ -356,22 +292,18 @@ class arrowWindow(object):
             print "top of loop"
             sensorReadings = readSensors(self.handles)
 
-            print 'a'
             gpsReadings, _ = sensorReadings['gps']
             if gpsReadings is not None:
                 self.state['location'] = gpsReadings['position']
-            writeDataToFile(sensorReadings)
-            print 'b'
+            # writeDataToFile(sensorReadings)
+            time.sleep(0.5)
 
             if self.state['outwardBound']:
                 if plan_route.distance_between(
                         self.state['location'],
                         DESTINATION) < 30:
-                    print 'c'
                     self.state['outwardBound'] = False
                     self.state['destination'] = HOME
-
-            print 'd'
 
             if not self.state['outwardBound']:
                 if plan_route.distance_between(
@@ -379,40 +311,31 @@ class arrowWindow(object):
                     print "Arrived home. Exiting."
                     return
 
-            print 'e'
-
             desiredDirection, err = plan_route.main(
                 self.state['location'],
                 self.state['destination'])
-            print 'f'
             if err is not None:
                 print "Routing server returned an error."
                 print err
                 return
-            print 'g'
+            print "desired direction", desiredDirection
             headingRadians = (
-                sensorReadings['motion']['heading'] * math.pi / 180)
+                (sensorReadings['motion']['heading'] * math.pi / 180)
+                - math.pi)
+            print "headingRadians", headingRadians
             correctionAngle = subtractAngles(desiredDirection, headingRadians)
+            print "correctionAngle", correctionAngle
 
-            print 'h'
             self.canvas.delete("all")
             self.canvas.create_line(
-                200,
-                200,
-                200*math.cos(correctionAngle),
-                200*math.sin(correctionAngle),
+                400,
+                400,
+                400 + 400*math.sin(correctionAngle),
+                400 - 400*math.cos(correctionAngle),
                 arrow=tk.LAST,
-                width=10,
-                arrowshape=(30, 40, 10))
-            print 'i'
-            print 'j'
+                width=20,
+                arrowshape=(60, 80, 20))
             self.canvas.update()
-            time.sleep(0.5)
 
 
-# handles, err = makeHandles()
-# if err is not None:
-#     print "Error making handles"
-#     print err
-# else:
 arrowWindow()
