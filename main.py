@@ -265,79 +265,6 @@ HOME = {
     'longitude': 0.161055}
 
 
-def initState():
-    return {
-        'destination': DESTINATION,
-        'location': {
-            'latitude': HOME['latitude'],
-            'longitude': HOME['longitude']},
-        'outwardBound': True}
-
-# def main():
-#     os.mkdir(DATADIR)
-#
-#     handles, err = makeHandles()
-#     if err is not None:
-#         print "Error making handles"
-#         print err
-#         return
-#
-#     state = initState()
-#
-#     while True:
-#         print "top of loop"
-#         sensorReadings = readSensors(handles)
-#
-#         print 'a'
-#         gpsReadings, _ = sensorReadings['gps']
-#         if gpsReadings is not None:
-#             state['location'] = gpsReadings['position']
-#         writeDataToFile(sensorReadings)
-#         print 'b'
-#
-#         if state['outwardBound']:
-#             if plan_route.distance_between(
-#                     state['location'],
-#                     DESTINATION) < 30:
-#                 print 'c'
-#                 state['outwardBound'] = False
-#                 state['destination'] = HOME
-#
-#         print 'd'
-#
-#         if not state['outwardBound']:
-#             if plan_route.distance_between(state['location'], HOME) < 30:
-#                 print "Arrived home. Exiting."
-#                 return
-#
-#         print 'e'
-#
-#         desiredDirection, err = plan_route.main(
-#             state['location'],
-#             state['destination'])
-#         print 'f'
-#         if err is not None:
-#             print "Routing server returned an error."
-#             print err
-#             return
-#         print 'g'
-#         headingRadians = sensorReadings['motion']['heading'] * math.pi / 180
-#         correctionAngle = subtractAngles(desiredDirection, headingRadians)
-#
-#         print 'h'
-#         canvas.create_line(
-#             200,
-#             200,
-#             200*math.cos(correctionAngle),
-#             200*math.sin(correctionAngle),
-#             arrow=tk.LAST,
-#             width=10,
-#             arrowshape=(30, 40, 10))
-#         print 'i'
-#         canvas.delete("all")
-#         print 'j'
-
-
 class arrowWindow(object):
     def __init__(self, handles):
         self.root = tk.Tk()
@@ -348,13 +275,8 @@ class arrowWindow(object):
         os.mkdir(DATADIR)
         self.handles = handles
 
-        self.state = initState
-
     def animation(self):
-        while True:
-
-            print "top of loop"
-            sensorReadings = readSensors(self.handles)
+        sensorReadings = readSensors(self.handles)
 
 
 handles, err = makeHandles()
