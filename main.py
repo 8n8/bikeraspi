@@ -395,6 +395,7 @@ class arrowWindow(object):
             correctionAngle = subtractAngles(desiredDirection, headingRadians)
 
             print 'h'
+            self.canvas.delete("all")
             self.canvas.create_line(
                 200,
                 200,
@@ -404,8 +405,9 @@ class arrowWindow(object):
                 width=10,
                 arrowshape=(30, 40, 10))
             print 'i'
-            self.canvas.delete("all")
             print 'j'
+            self.canvas.update()
+            time.sleep(0.5)
 
 
 # handles, err = makeHandles()
