@@ -3,3 +3,4 @@ collectData/.stack-work/
 collectData/collectData.cabal
 *.pyc
 testIm*
+hsimage
