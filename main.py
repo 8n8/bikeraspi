@@ -221,22 +221,12 @@ def makeHandles():
     if err is not None:
         return None, err
 
-    cam0, err = connectToCam(0)
-    if err is not None:
-        return None, err
-
-    cam1, err = connectToCam(1)
-    if err is not None:
-        return None, err
-
-    cam2, err = connectToCam(2)
+    camHandle, err = connectToCam(0)
     if err is not None:
         return None, err
 
     return {
-        'cam0': cam0,
-        'cam1': cam1,
-        'cam2': cam2,
+        'cam': camHandle,
         'moveSensor': movehandle,
         'gps': serial.Serial('/dev/ttyACM0', baudrate=115200)
         }, None
@@ -246,9 +236,7 @@ def readSensors(handles):
     return {
         'gps': readGps(handles['gps']),
         'motion': readMoveSensor(handles['moveSensor']),
-        'cam0': takePhoto(handles['cam0']),
-        'cam1': takePhoto(handles['cam1']),
-        'cam2': takePhoto(handles['cam2'])}
+        'cam': takePhoto(handles['cam'])}
 
 
 DATADIR = "/home/pi/data/" + str(time.time())
@@ -257,20 +245,14 @@ DATADIR = "/home/pi/data/" + str(time.time())
 def writeDataToFile(data):
     dataDir = DATADIR + '/' + str(time.time())
     os.mkdir(dataDir)
-    pic0, err0 = data['cam0']
-    pic1, err1 = data['cam1']
-    pic2, err2 = data['cam2']
+    pic, camErr = data['cam']
     with open(dataDir + '/data.json', 'w') as dataFile:
         json.dump(
             {'gps': data['gps'],
              'motion': data['motion'],
-             'cam0err': err0,
-             'cam1err': err1,
-             'cam2err': err2},
+             'camErr': camErr},
             dataFile)
-    cv2.imwrite(dataDir + '/im0.jpg', pic0)
-    cv2.imwrite(dataDir + '/im1.jpg', pic1)
-    cv2.imwrite(dataDir + '/im2.jpg', pic2)
+    cv2.imwrite(dataDir + '/image.jpg', pic)
 
 
 DESTINATION = {
@@ -291,73 +273,144 @@ def initState():
             'longitude': HOME['longitude']},
         'outwardBound': True}
 
+# def main():
+#     os.mkdir(DATADIR)
+#
+#     handles, err = makeHandles()
+#     if err is not None:
+#         print "Error making handles"
+#         print err
+#         return
+#
+#     state = initState()
+#
+#     while True:
+#         print "top of loop"
+#         sensorReadings = readSensors(handles)
+#
+#         print 'a'
+#         gpsReadings, _ = sensorReadings['gps']
+#         if gpsReadings is not None:
+#             state['location'] = gpsReadings['position']
+#         writeDataToFile(sensorReadings)
+#         print 'b'
+#
+#         if state['outwardBound']:
+#             if plan_route.distance_between(
+#                     state['location'],
+#                     DESTINATION) < 30:
+#                 print 'c'
+#                 state['outwardBound'] = False
+#                 state['destination'] = HOME
+#
+#         print 'd'
+#
+#         if not state['outwardBound']:
+#             if plan_route.distance_between(state['location'], HOME) < 30:
+#                 print "Arrived home. Exiting."
+#                 return
+#
+#         print 'e'
+#
+#         desiredDirection, err = plan_route.main(
+#             state['location'],
+#             state['destination'])
+#         print 'f'
+#         if err is not None:
+#             print "Routing server returned an error."
+#             print err
+#             return
+#         print 'g'
+#         headingRadians = sensorReadings['motion']['heading'] * math.pi / 180
+#         correctionAngle = subtractAngles(desiredDirection, headingRadians)
+#
+#         print 'h'
+#         canvas.create_line(
+#             200,
+#             200,
+#             200*math.cos(correctionAngle),
+#             200*math.sin(correctionAngle),
+#             arrow=tk.LAST,
+#             width=10,
+#             arrowshape=(30, 40, 10))
+#         print 'i'
+#         canvas.delete("all")
+#         print 'j'
 
-def main():
-    os.mkdir(DATADIR)
-    window = tk.Tk()
-    canvas = tk.Canvas(window, width=400, height=400)
-    canvas.pack()
 
-    handles, err = makeHandles()
-    if err is not None:
-        print "Error making handles"
-        print err
-        return
+class arrowWindow(object):
+    def __init__(self):
+        self.root = tk.Tk()
+        self.canvas = tk.Canvas(self.root, width=400, height=400)
+        self.canvas.pack()
+        os.mkdir(DATADIR)
+        self.handles, err = makeHandles()
 
-    state = initState()
-    while True:
-         print readSensors(handles)
+        self.state = initState()
+        self.root.after(0, self.animation)
+        self.root.mainloop()
 
-    while True:
-        print "top of loop"
-        sensorReadings = readSensors(handles)
+    def animation(self):
+        while True:
 
-        print 'a'
-        gpsReadings, _ = sensorReadings['gps']
-        if gpsReadings is not None:
-            state['location'] = gpsReadings['position']
-        writeDataToFile(sensorReadings)
-        print 'b'
+            print "top of loop"
+            sensorReadings = readSensors(self.handles)
 
-        if plan_route.distance_between(state['location'], DESTINATION) < 30:
-            print 'c'
-            state['outwardBound'] = False
-            state['destination'] = HOME
+            print 'a'
+            gpsReadings, _ = sensorReadings['gps']
+            if gpsReadings is not None:
+                self.state['location'] = gpsReadings['position']
+            writeDataToFile(sensorReadings)
+            print 'b'
 
-        print 'd'
+            if self.state['outwardBound']:
+                if plan_route.distance_between(
+                        self.state['location'],
+                        DESTINATION) < 30:
+                    print 'c'
+                    self.state['outwardBound'] = False
+                    self.state['destination'] = HOME
 
-        if (not state['outwardBound'] and
-                plan_route.distancebetween(state['location'], HOME) < 30):
-            print "Arrived home. Exiting."
-            return
-            
-        print 'e'
+            print 'd'
 
-        desiredDirection, err = plan_route.main(
-            state['location'],
-            state['destination'])
-        print 'f'
-        if err is not None:
-            print "Routing server returned an error."
-            print err
-            return
-        print 'g'
-        headingRadians = sensorReadings['motion']['heading'] * math.pi / 180
-        correctionAngle = subtractAngles(desiredDirection, headingRadians)
+            if not self.state['outwardBound']:
+                if plan_route.distance_between(
+                        self.state['location'], HOME) < 30:
+                    print "Arrived home. Exiting."
+                    return
 
-        print 'h'
-        canvas.create_line(
-            200,
-            200,
-            200*math.cos(correctionAngle),
-            200*math.sin(correctionAngle),
-            arrow=tk.LAST,
-            width=10,
-            arrowshape=(30, 40, 10))
-        print 'i'
-        canvas.delete("all")
-        print 'j'
+            print 'e'
 
-    window.mainloop()
+            desiredDirection, err = plan_route.main(
+                self.state['location'],
+                self.state['destination'])
+            print 'f'
+            if err is not None:
+                print "Routing server returned an error."
+                print err
+                return
+            print 'g'
+            headingRadians = (
+                sensorReadings['motion']['heading'] * math.pi / 180)
+            correctionAngle = subtractAngles(desiredDirection, headingRadians)
 
-main()
+            print 'h'
+            self.canvas.create_line(
+                200,
+                200,
+                200*math.cos(correctionAngle),
+                200*math.sin(correctionAngle),
+                arrow=tk.LAST,
+                width=10,
+                arrowshape=(30, 40, 10))
+            print 'i'
+            self.canvas.delete("all")
+            print 'j'
+
+
+# handles, err = makeHandles()
+# if err is not None:
+#     print "Error making handles"
+#     print err
+# else:
+arrowWindow()
