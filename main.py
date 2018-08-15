@@ -356,57 +356,6 @@ class arrowWindow(object):
             print "top of loop"
             sensorReadings = readSensors(self.handles)
 
-            print 'a'
-            gpsReadings, _ = sensorReadings['gps']
-            if gpsReadings is not None:
-                self.state['location'] = gpsReadings['position']
-            writeDataToFile(sensorReadings)
-            print 'b'
-
-            if self.state['outwardBound']:
-                if plan_route.distance_between(
-                        self.state['location'],
-                        DESTINATION) < 30:
-                    print 'c'
-                    self.state['outwardBound'] = False
-                    self.state['destination'] = HOME
-
-            print 'd'
-
-            if not self.state['outwardBound']:
-                if plan_route.distance_between(
-                        self.state['location'], HOME) < 30:
-                    print "Arrived home. Exiting."
-                    return
-
-            print 'e'
-
-            desiredDirection, err = plan_route.main(
-                self.state['location'],
-                self.state['destination'])
-            print 'f'
-            if err is not None:
-                print "Routing server returned an error."
-                print err
-                return
-            print 'g'
-            headingRadians = (
-                sensorReadings['motion']['heading'] * math.pi / 180)
-            correctionAngle = subtractAngles(desiredDirection, headingRadians)
-
-            print 'h'
-            self.canvas.create_line(
-                200,
-                200,
-                200*math.cos(correctionAngle),
-                200*math.sin(correctionAngle),
-                arrow=tk.LAST,
-                width=10,
-                arrowshape=(30, 40, 10))
-            print 'i'
-            self.canvas.delete("all")
-            print 'j'
-
 
 handles, err = makeHandles()
 if err is not None:
