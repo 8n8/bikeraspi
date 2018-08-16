@@ -52,7 +52,7 @@ def setupMoveSensor():
     handle, err = connectToMoveSensor()
     if err is not None:
         return None, err
-    calibrateMoveSensor(handle)
+    # calibrateMoveSensor(handle)
     return handle, None
 
 
@@ -131,7 +131,7 @@ def readGps(gpsSerialPort):
         if (reading['speedError'] is None and
                 reading['positionError'] is None):
             break
-    return None, reading
+    return reading, None
 
 
 def parse_gps_speed_reading(line_of_output):
@@ -287,16 +287,25 @@ class arrowWindow(object):
         self.root.mainloop()
 
     def animation(self):
+        badGpsCounter = 0
+        fillColour = "red"
         while True:
-
-            print "top of loop"
+            time.sleep(0.2)
+            print "location", self.state['location']
             sensorReadings = readSensors(self.handles)
 
-            gpsReadings, _ = sensorReadings['gps']
-            fillColour = "red"
+            gpsReadings, gpsErr = sensorReadings['gps']
+            print "gpsReadings", gpsReadings
+            print "gpsErr", gpsErr
             if gpsReadings is not None:
-                self.state['location'] = gpsReadings['position']
-                fillColour = "green"
+                if gpsReadings['position'] is not None:
+                    self.state['location'] = gpsReadings['position']
+                    badGpsCounter = 0
+                    fillColour = "green"
+            else:
+                badGpsCounter += 1
+                if badGpsCounter > 30:
+                    fillColour = "red"
 
             if plan_route.distance_between(
                     self.state['location'],
@@ -323,13 +332,10 @@ class arrowWindow(object):
                 print "Routing server returned an error."
                 print err
                 return
-            print "desired direction", desiredDirection
             headingRadians = (
                 (sensorReadings['motion']['heading'] * math.pi / 180)
                 - math.pi)
-            print "headingRadians", headingRadians
             correctionAngle = subtractAngles(desiredDirection, headingRadians)
-            print "correctionAngle", correctionAngle
 
             self.canvas.delete("all")
             self.canvas.create_oval(380, 380, 400, 400, fill=fillColour) 
