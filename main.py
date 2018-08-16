@@ -256,8 +256,8 @@ def writeDataToFile(data):
 
 
 DESTINATION = {
-    'latitude': 52.237516,
-    'longitude': 0.178029}
+    'latitude': 52.242017,
+    'longitude': 0.159642}
 
 
 HOME = {
@@ -293,10 +293,15 @@ class arrowWindow(object):
             sensorReadings = readSensors(self.handles)
 
             gpsReadings, _ = sensorReadings['gps']
+            fillColour = "red"
             if gpsReadings is not None:
                 self.state['location'] = gpsReadings['position']
-            # writeDataToFile(sensorReadings)
-            time.sleep(0.5)
+                fillColour = "green"
+
+            if plan_route.distance_between(
+                    self.state['location'],
+                    HOME) > 30:
+                writeDataToFile(sensorReadings)
 
             if self.state['outwardBound']:
                 if plan_route.distance_between(
@@ -327,11 +332,12 @@ class arrowWindow(object):
             print "correctionAngle", correctionAngle
 
             self.canvas.delete("all")
+            self.canvas.create_oval(380, 380, 400, 400, fill=fillColour) 
             self.canvas.create_line(
-                400,
-                400,
-                400 + 400*math.sin(correctionAngle),
-                400 - 400*math.cos(correctionAngle),
+                200,
+                200,
+                200 + 200*math.sin(correctionAngle),
+                200 - 200*math.cos(correctionAngle),
                 arrow=tk.LAST,
                 width=20,
                 arrowshape=(60, 80, 20))
