@@ -52,7 +52,7 @@ def setupMoveSensor():
     handle, err = connectToMoveSensor()
     if err is not None:
         return None, err
-    calibrateMoveSensor(handle)
+    #calibrateMoveSensor(handle)
     return handle, None
 
 
@@ -221,12 +221,17 @@ def makeHandles():
     if err is not None:
         return None, err
 
-    camHandle, err = connectToCam(0)
+    cam0Handle, err = connectToCam(0)
+    if err is not None:
+        return None, err
+
+    cam1Handle, err = connectToCam(1)
     if err is not None:
         return None, err
 
     return {
-        'cam': camHandle,
+        'cam0': cam0Handle,
+        'cam1': cam1Handle,
         'moveSensor': movehandle,
         'gps': serial.Serial('/dev/ttyACM0', baudrate=115200)
         }, None
@@ -236,7 +241,8 @@ def readSensors(handles):
     return {
         'gps': readGps(handles['gps']),
         'motion': readMoveSensor(handles['moveSensor']),
-        'cam': takePhoto(handles['cam'])}
+        'cam0': takePhoto(handles['cam0']),
+        'cam1': takePhoto(handles['cam1'])}
 
 
 DATADIR = "/home/pi/data/" + str(time.time())
@@ -245,14 +251,17 @@ DATADIR = "/home/pi/data/" + str(time.time())
 def writeDataToFile(data):
     dataDir = DATADIR + '/' + str(time.time())
     os.mkdir(dataDir)
-    pic, camErr = data['cam']
+    pic0, camErr0 = data['cam0']
+    pic1, camErr1 = data['cam1']
     with open(dataDir + '/data.json', 'w') as dataFile:
         json.dump(
             {'gps': data['gps'],
              'motion': data['motion'],
-             'camErr': camErr},
+             'camErr0': camErr0,
+             'camErr1': camErr1},
             dataFile)
-    cv2.imwrite(dataDir + '/image.jpg', pic)
+    cv2.imwrite(dataDir + '/image0.jpg', pic0)
+    cv2.imwrite(dataDir + '/image1.jpg', pic1)
 
 
 DESTINATION = {
@@ -290,13 +299,10 @@ class arrowWindow(object):
         badGpsCounter = 0
         fillColour = "red"
         while True:
-            time.sleep(0.2)
             print "location", self.state['location']
             sensorReadings = readSensors(self.handles)
 
             gpsReadings, gpsErr = sensorReadings['gps']
-            print "gpsReadings", gpsReadings
-            print "gpsErr", gpsErr
             if gpsReadings is not None:
                 if gpsReadings['position'] is not None:
                     self.state['location'] = gpsReadings['position']
@@ -307,10 +313,10 @@ class arrowWindow(object):
                 if badGpsCounter > 30:
                     fillColour = "red"
 
-            if plan_route.distance_between(
-                    self.state['location'],
-                    HOME) > 30:
-                writeDataToFile(sensorReadings)
+            # if plan_route.distance_between(
+            #         self.state['location'],
+            #         HOME) > 30:
+            writeDataToFile(sensorReadings)
 
             if self.state['outwardBound']:
                 if plan_route.distance_between(
@@ -338,7 +344,7 @@ class arrowWindow(object):
             correctionAngle = subtractAngles(desiredDirection, headingRadians)
 
             self.canvas.delete("all")
-            self.canvas.create_oval(380, 380, 400, 400, fill=fillColour) 
+            self.canvas.create_oval(380, 380, 400, 400, fill=fillColour)
             self.canvas.create_line(
                 200,
                 200,
