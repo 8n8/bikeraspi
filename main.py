@@ -52,7 +52,7 @@ def setupMoveSensor():
     handle, err = connectToMoveSensor()
     if err is not None:
         return None, err
-    # calibrateMoveSensor(handle)
+    calibrateMoveSensor(handle)
     return handle, None
 
 
@@ -100,7 +100,7 @@ def takePhoto(camHandle):
     ok, photo = camHandle.read()
     if not ok:
         return None, "Could not take photo."
-    return photo, None
+    return toBlackAndWhite(photo), None
 
 
 def toBlackAndWhite(im):
