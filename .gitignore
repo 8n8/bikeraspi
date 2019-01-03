@@ -4,3 +4,7 @@ collectData/collectData.cabal
 *.pyc
 testIm*
 hsimage
+image.jpeg
+venv/
+webcam.cpp
+testphoto.jpg

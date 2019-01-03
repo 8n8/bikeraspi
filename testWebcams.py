@@ -22,7 +22,7 @@ def main():
     # for h in handles:
     #     h.start()
 
-    handle = cv2.VideoCapture(-1)
+    handle = cv2.VideoCapture(1)
     if not handle.isOpened():
         print "Could not connect to webcam."
         return
